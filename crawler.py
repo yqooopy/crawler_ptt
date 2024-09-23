@@ -1,5 +1,7 @@
 import requests
 from bs4 import BeautifulSoup
+import re
+from datetime import datetime
 
 class PTTCrawler:
     def __init__(self, board):
@@ -27,13 +29,22 @@ class PTTCrawler:
 
         if html:
             titles = self.parse_titles(html)
+            
             for title in titles:
-                # print(title[0], title[1])
-                datadict = {'title': title[0], 'url': title[1]}
+                match = re.search(r'M\.(\d+)', title[1])
+                if match:
+                    timestamp = int(match.group(1))
+                    today_start = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+                    today_timestamp = int(today_start.timestamp())
+                    if timestamp < today_timestamp:  
+                        continue
+
+                datadict = {'title': title[0], 'url': title[1], 'timestamp': timestamp}
                 data.append(datadict)
+                
             return data
 if __name__ == '__main__':
     crawler = PTTCrawler('Gossiping')
-    crawler.crawl()
+    print(crawler.crawl())
 
 
